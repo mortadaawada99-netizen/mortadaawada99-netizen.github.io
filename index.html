@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Sub-Zero Owner">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Sub-Zero Owner</title>
+
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "56c420e3-f7ec-4010-81be-b0f5e7bc87e8",
+        serviceWorkerPath: "push/onesignal/OneSignalSDKWorker.js",
+        serviceWorkerParam: { scope: "/push/onesignal/" },
+        autoResubscribe: true,
+        welcomeNotification: { disable: true }
+      });
+
+      try {
+        await OneSignal.login("subzero-owner");
+        await OneSignal.User.addTag("role", "owner");
+      } catch (e) {
+        console.warn("OneSignal identification:", e);
+      }
+
+      window.__subZeroOneSignal = OneSignal;
+      window.dispatchEvent(new Event("subzero-onesignal-ready"));
+    });
+  </script>
+
+  <style>
+    :root{
+      --bg:#07111f;--panel:#0d1824;--panel2:#0a141e;--line:#1a2b3a;
+      --text:#eef6fb;--muted:#8297aa;--cyan:#37d5ff;--green:#45d7b5;
+      --amber:#ffc857;--red:#ff8f8f;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    body{min-height:100vh;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+    button,input{font:inherit}
+    .hidden{display:none!important}
+    .appbar{
+      position:sticky;top:0;z-index:20;background:rgba(7,17,31,.92);backdrop-filter:blur(16px);
+      padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid rgba(255,255,255,.05);
+      display:flex;align-items:center;justify-content:space-between
+    }
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{width:34px;height:34px;border-radius:11px;background:linear-gradient(145deg,#17364b,#09131d);display:grid;place-items:center;color:var(--cyan);font-size:20px}
+    .brand h1{font-size:18px;margin:0;font-weight:900;letter-spacing:-.02em}
+    .brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+    .iconbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);width:38px;height:38px;border-radius:12px}
+    main{max-width:760px;margin:0 auto;padding:14px 14px 28px}
+    .eyebrow{font-size:11px;color:var(--muted);font-weight:800;margin:4px 0 8px;text-transform:uppercase;letter-spacing:.08em}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+    .metric.big{padding:18px}
+    .metric .label{font-size:10px;color:var(--muted);font-weight:800}
+    .metric .value{font-size:21px;font-weight:900;margin-top:5px;letter-spacing:-.03em}
+    .metric.big .value{font-size:32px;color:var(--cyan)}
+    .metric .sub{font-size:10px;color:#6f8396;margin-top:3px}
+    .section{margin-top:22px}
+    .section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .section-head h2{font-size:17px;margin:0}
+    .section-head span{font-size:10px;color:var(--muted)}
+    .rowcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:7px;display:flex;gap:12px;align-items:center}
+    .rowcard.danger{border-color:#5b3830}
+    .rowmain{min-width:0;flex:1}
+    .rowtitle{font-weight:850;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rowsub{font-size:10px;color:#7d91a5;margin-top:3px;line-height:1.35}
+    .rowvalue{font-weight:900;white-space:nowrap}
+    .danger .rowvalue{color:#ffb073}
+    .empty{color:var(--muted);text-align:center;padding:24px}
+    .tabbar{
+      position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(8,18,29,.96);backdrop-filter:blur(18px);
+      border-top:1px solid rgba(255,255,255,.06);padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+      display:grid;grid-template-columns:repeat(4,1fr)
+    }
+    .tabbar button{border:0;background:none;color:#71869a;padding:7px 2px;font-size:10px;border-radius:12px}
+    .tabbar button .ico{display:block;font-size:19px;margin-bottom:3px}
+    .tabbar button.active{color:var(--cyan);background:#102637}
+    .setup{max-width:520px;margin:0 auto;padding:calc(34px + env(safe-area-inset-top)) 20px 32px}
+    .setup .snow{font-size:48px;color:var(--cyan)}
+    .setup h1{font-size:30px;margin:12px 0 6px}
+    .setup p{color:var(--muted);line-height:1.5;font-size:14px}
+    .field{margin-top:13px}
+    .field label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin-bottom:6px}
+    .field input{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:13px 14px;border-radius:13px;outline:none}
+    .field input:focus{border-color:#2c6b87}
+    .btn{width:100%;margin-top:18px;border:0;border-radius:13px;padding:13px 16px;font-weight:900;background:var(--cyan);color:#041018}
+    .btn.secondary{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+    .msg{margin-top:12px;font-size:12px;line-height:1.45}
+    .error{color:var(--red)}
+    .ok{color:var(--green)}
+    .statusbar{max-width:760px;margin:0 auto;padding:0 14px 6px;color:#6e8295;font-size:9px;display:flex;gap:6px;align-items:center}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .banner{background:#1c1810;color:#ffe0a3;border-bottom:1px solid #59491f;padding:9px 14px;font-size:11px;text-align:center}
+
+    .notify-card{margin-top:12px;border-color:#244458;background:linear-gradient(145deg,#0d1824,#0b1b28)}
+    .notify-title{font-size:14px;font-weight:900}
+    .notify-copy{font-size:11px;line-height:1.5;color:var(--muted);margin-top:4px}
+    .notify-actions{display:flex;gap:8px;margin-top:12px}
+    .notify-actions button{flex:1;margin:0}
+    .notify-status{font-size:10px;color:var(--muted);margin-top:9px}
+    .btn.small{padding:10px 12px;font-size:12px}
+    .btn.off{background:#162431;color:#d7e4ec;border:1px solid var(--line)}
+
+    @media(min-width:700px){main{padding-left:22px;padding-right:22px}.grid2{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+
+<div id="setupView" class="setup">
+  <div class="snow">❄</div>
+  <h1>Sub-Zero Owner</h1>
+  <p>Connect this iPhone dashboard to the same Supabase cloud copy used by your Windows POS.</p>
+
+  <div class="field"><label>Supabase Project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co" autocapitalize="none"></div>
+  <div class="field"><label>Publishable Key</label><input id="cfgKey" placeholder="sb_publishable_..." autocapitalize="none"></div>
+  <div class="field"><label>Shop ID</label><input id="cfgShop" value="subzero-main" autocapitalize="none"></div>
+  <div class="field"><label>Sync Secret</label><input id="cfgSecret" type="password" placeholder="Same secret as Windows"></div>
+
+  <button class="btn" id="connectBtn">Connect to Sub-Zero</button>
+  <div id="setupMsg" class="msg"></div>
+  <p style="font-size:11px">This first version is read-only. Sales, stock changes, and debt payments remain controlled by your Windows POS.</p>
+</div>
+
+<div id="appView" class="hidden">
+  <div id="offlineBanner" class="banner hidden">Offline — showing the last cloud snapshot saved on this iPhone.</div>
+  <header class="appbar">
+    <div class="brand">
+      <div class="logo">❄</div>
+      <div><h1>Sub-Zero</h1><small>Owner Dashboard</small></div>
+    </div>
+    <div>
+      <button class="iconbtn" id="refreshBtn" aria-label="Refresh">↻</button>
+      <button class="iconbtn" id="settingsBtn" aria-label="Connection settings">⚙</button>
+    </div>
+  </header>
+
+  <div class="statusbar"><span class="dot"></span><span id="cloudStatus">Cloud not checked yet</span></div>
+
+  <main>
+
+    <div id="notificationCard" class="card notify-card">
+      <div class="notify-title">🔔 Owner Notifications</div>
+      <div id="notifyCopy" class="notify-copy">
+        Enable push notifications to receive new-sale and low-stock alerts on your iPhone.
+      </div>
+      <div class="notify-actions">
+        <button class="btn small" id="enableNotificationsBtn">Enable Notifications</button>
+        <button class="btn small off hidden" id="disableNotificationsBtn">Disable</button>
+      </div>
+      <div id="notifyStatus" class="notify-status">Checking notification support…</div>
+    </div>
+
+    <section id="page-dashboard"></section>
+    <section id="page-sales" class="hidden"></section>
+    <section id="page-stock" class="hidden"></section>
+    <section id="page-debts" class="hidden"></section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="dashboard" class="active"><span class="ico">▦</span>Dashboard</button>
+    <button data-tab="sales"><span class="ico">▤</span>Sales</button>
+    <button data-tab="stock"><span class="ico">◫</span>Stock</button>
+    <button data-tab="debts"><span class="ico">◉</span>Debts</button>
+  </nav>
+</div>
+
+<script>
+const CFG_KEY='subzero_owner_pwa_cfg_v1';
+const SNAP_KEY='subzero_owner_pwa_snapshot_v1';
+const $=id=>document.getElementById(id);
+let cfg=null,state=null,cloudUpdatedAt=null,currentTab='dashboard',refreshTimer=null;
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function money(v){return '$'+num(v).toFixed(2)}
+function lbp(v){const r=num(state?.settings?.rate)||90000;return Math.round(num(v)*r).toLocaleString()+' LBP'}
+function arr(v){return Array.isArray(v)?v:[]}
+function isDebt(s){return !!s?.debt}
+function isPaidDebt(s){return isDebt(s)&&!!s.debtPaid}
+function validSales(){return arr(state?.sales).filter(s=>!s.voided)}
+function saleMoment(s){
+  if(s?.timestamp)return new Date(Number(s.timestamp));
+  return new Date(`${s?.date||''}T${s?.time||'00:00'}:00`);
+}
+function collectionMoment(s){
+  if(isDebt(s))return isPaidDebt(s)&&s.paidAt?new Date(Number(s.paidAt)):null;
+  return saleMoment(s);
+}
+function sameDay(a,b){return a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+function sameMonth(a,b){return a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()}
+function collectedToday(){const n=new Date();return validSales().filter(s=>sameDay(collectionMoment(s),n))}
+function collectedMonth(){const n=new Date();return validSales().filter(s=>sameMonth(collectionMoment(s),n))}
+function cogs(rows){return rows.reduce((t,s)=>t+arr(s.items).reduce((a,i)=>a+num(i.cost)*num(i.qty),0),0)}
+function revenue(rows){return rows.reduce((a,s)=>a+num(s.total),0)}
+function openDebts(){return validSales().filter(s=>isDebt(s)&&!isPaidDebt(s))}
+function physical(){return arr(state?.products).filter(p=>p.type==='physical')}
+function lowStock(){return physical().filter(p=>num(p.qty)<=num(p.low)).sort((a,b)=>num(a.qty)-num(b.qty))}
+function inventoryCost(){return physical().reduce((a,p)=>a+num(p.qty)*num(p.cost),0)}
+function fmt(d){
+  if(!d||isNaN(d))return '—';
+  return d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function compact(v){const n=num(v);return Number.isInteger(n)?String(n):n.toFixed(1)}
+
+function metric(label,value,sub,big=false,accent=''){
+  return `<div class="card metric ${big?'big':''}">
+    <div class="label">${esc(label)}</div>
+    <div class="value" ${accent?`style="color:${accent}"`:''}>${esc(value)}</div>
+    <div class="sub">${esc(sub)}</div>
+  </div>`;
+}
+function row(title,sub,val,danger=false){
+  return `<div class="rowcard ${danger?'danger':''}">
+    <div class="rowmain"><div class="rowtitle">${esc(title)}</div><div class="rowsub">${esc(sub)}</div></div>
+    <div class="rowvalue">${esc(val)}</div>
+  </div>`;
+}
+
+function renderDashboard(){
+  const today=collectedToday(),rev=revenue(today),cg=cogs(today),gross=rev-cg;
+  const debts=openDebts(),debtTotal=revenue(debts);
+  const people=new Set(debts.map(x=>String(x.customer||'').trim().toLowerCase()).filter(Boolean)).size;
+  const debtPaidToday=validSales().filter(s=>isPaidDebt(s)&&sameDay(collectionMoment(s),new Date()));
+  const recent=[...validSales()].sort((a,b)=>saleMoment(b)-saleMoment(a)).slice(0,6);
+
+  $('page-dashboard').innerHTML=`
+    <div class="eyebrow">Today</div>
+    ${metric('Collected Revenue',money(rev),lbp(rev),true)}
+    <div style="height:10px"></div>
+    <div class="grid2">
+      ${metric('Gross Profit',money(gross),'Before fixed costs')}
+      ${metric('Outstanding Debt',money(debtTotal),`${people} people`)}
+      ${metric('Debt Collected',money(revenue(debtPaidToday)),'Today')}
+      ${metric('Inventory Cost',money(inventoryCost()),`${physical().length} products`)}
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Stock Alerts</h2><span>${lowStock().length} low</span></div>
+      ${lowStock().length?lowStock().slice(0,6).map(p=>row(p.name||'Product',p.category||'',compact(p.qty)+' left',num(p.qty)<=0)).join(''):'<div class="card empty">Stock levels look good.</div>'}
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Recent Activity</h2></div>
+      ${recent.length?recent.map(s=>{
+        const debt=isDebt(s),paid=isPaidDebt(s);
+        const title=String(s.customer||'').trim()||s.receipt||'Sale';
+        const status=debt?(paid?'Debt paid':'Unpaid debt'):(s.payment||'Paid');
+        return row(title,`${status} • ${fmt(saleMoment(s))}`,money(s.total),debt&&!paid);
+      }).join(''):'<div class="card empty">No sales yet.</div>'}
+    </div>`;
+}
+
+function renderSales(){
+  const month=collectedMonth(),rev=revenue(month),cg=cogs(month);
+  const recent=[...validSales()].sort((a,b)=>saleMoment(b)-saleMoment(a)).slice(0,50);
+  $('page-sales').innerHTML=`
+    <div class="eyebrow">This Month</div>
+    <div class="grid2">
+      ${metric('Revenue',money(rev),`${month.length} collected payments`)}
+      ${metric('Gross Profit',money(rev-cg),'Before fixed costs')}
+    </div>
+    <div class="section"><div class="section-head"><h2>Latest Sales</h2></div>
+    ${recent.length?recent.map(s=>{
+      const debt=isDebt(s),paid=isPaidDebt(s);
+      return row(s.receipt||'Sale',`${s.customer||''}${s.customer?' • ':''}${debt?(paid?'Debt paid':'Unpaid debt'):(s.payment||'Paid')} • ${fmt(saleMoment(s))}`,money(s.total),debt&&!paid);
+    }).join(''):'<div class="card empty">No sales yet.</div>'}</div>`;
+}
+
+function renderStock(){
+  const rows=[...physical()].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||'')));
+  $('page-stock').innerHTML=`
+    <div class="grid2">
+      ${metric('Products',String(rows.length),'Physical inventory')}
+      ${metric('Cost Value',money(inventoryCost()),'Current stock')}
+    </div>
+    <div style="height:10px"></div>
+    ${metric('Low / Out of Stock',String(lowStock().length),'Needs attention')}
+    <div class="section"><div class="section-head"><h2>Inventory</h2></div>
+      ${rows.length?rows.map(p=>row(p.name||'Product',`${p.category||''} • Low level ${compact(p.low)}`,compact(p.qty),num(p.qty)<=num(p.low))).join(''):'<div class="card empty">No physical inventory.</div>'}
+    </div>`;
+}
+
+function renderDebts(){
+  const rows=[...openDebts()].sort((a,b)=>saleMoment(b)-saleMoment(a));
+  const total=revenue(rows);
+  const people=new Set(rows.map(x=>String(x.customer||'').trim().toLowerCase()).filter(Boolean)).size;
+  $('page-debts').innerHTML=`
+    ${metric('Outstanding',money(total),`${people} people • ${rows.length} unpaid transactions`,true,'#ffc857')}
+    <div class="section"><div class="section-head"><h2>People Who Owe</h2></div>
+      ${rows.length?rows.map(s=>row(s.customer||'Unnamed',`${s.receipt||''} • ${fmt(saleMoment(s))}${s.note?' • '+s.note:''}`,money(s.total),true)).join(''):'<div class="card empty">No unpaid debts.</div>'}
+    </div>`;
+}
+function renderAll(){if(!state)return;renderDashboard();renderSales();renderStock();renderDebts()}
+
+async function rpcLoad(){
+  const url=cfg.url.replace(/\/+$/,'')+'/rest/v1/rpc/pos_cloud_load';
+  const res=await fetch(url,{
+    method:'POST',
+    headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Content-Type':'application/json'},
+    body:JSON.stringify({p_shop_id:cfg.shopId,p_sync_secret:cfg.secret})
+  });
+  const txt=await res.text();
+  if(!res.ok)throw new Error(txt||('HTTP '+res.status));
+  const data=txt?JSON.parse(txt):null;
+  if(!Array.isArray(data)||!data.length||!data[0].state)throw new Error('No cloud copy found. Use Upload Now on the Windows POS first.');
+  return data[0];
+}
+
+async function refresh(silent=false){
+  if(!cfg)return;
+  if(!silent)$('cloudStatus').textContent='Checking cloud…';
+  try{
+    const row=await rpcLoad();
+    state=row.state;
+    cloudUpdatedAt=row.updated_at?new Date(row.updated_at):new Date();
+    localStorage.setItem(SNAP_KEY,JSON.stringify(row));
+    $('offlineBanner').classList.add('hidden');
+    $('cloudStatus').textContent='Cloud updated '+fmt(cloudUpdatedAt);
+    renderAll();
+  }catch(e){
+    const cached=localStorage.getItem(SNAP_KEY);
+    if(cached){
+      try{
+        const row=JSON.parse(cached);state=row.state;cloudUpdatedAt=row.updated_at?new Date(row.updated_at):null;
+        renderAll();$('offlineBanner').classList.remove('hidden');
+        $('cloudStatus').textContent='Offline snapshot • '+fmt(cloudUpdatedAt);
+      }catch{}
+    }else{
+      $('cloudStatus').textContent='Cloud error';
+      if(!silent)alert('Could not load Sub-Zero cloud data.\n\n'+e.message);
+    }
+  }
+}
+
+function showApp(){
+  $('setupView').classList.add('hidden');$('appView').classList.remove('hidden');
+  refresh();
+  clearInterval(refreshTimer);refreshTimer=setInterval(()=>refresh(true),30000);
+}
+function showSetup(){
+  $('appView').classList.add('hidden');$('setupView').classList.remove('hidden');
+  $('cfgUrl').value=cfg?.url||'';$('cfgKey').value=cfg?.key||'';$('cfgShop').value=cfg?.shopId||'subzero-main';$('cfgSecret').value=cfg?.secret||'';
+}
+function loadCfg(){
+  try{cfg=JSON.parse(localStorage.getItem(CFG_KEY)||'null')}catch{cfg=null}
+  if(cfg?.url&&cfg?.key&&cfg?.shopId&&cfg?.secret)showApp();else showSetup();
+}
+
+$('connectBtn').onclick=async()=>{
+  const c={
+    url:$('cfgUrl').value.trim().replace(/\/+$/,''),
+    key:$('cfgKey').value.trim(),
+    shopId:$('cfgShop').value.trim()||'subzero-main',
+    secret:$('cfgSecret').value
+  };
+  const msg=$('setupMsg');msg.textContent='';
+  if(!c.url||!c.key||!c.shopId||c.secret.length<16){
+    msg.className='msg error';msg.textContent='Fill all fields. Sync Secret must be at least 16 characters.';return;
+  }
+  $('connectBtn').disabled=true;$('connectBtn').textContent='Connecting…';
+  const old=cfg;cfg=c;
+  try{
+    const row=await rpcLoad();
+    localStorage.setItem(CFG_KEY,JSON.stringify(c));
+    localStorage.setItem(SNAP_KEY,JSON.stringify(row));
+    msg.className='msg ok';msg.textContent='Connected.';
+    state=row.state;cloudUpdatedAt=row.updated_at?new Date(row.updated_at):new Date();
+    setTimeout(showApp,250);
+  }catch(e){
+    cfg=old;msg.className='msg error';msg.textContent=e.message;
+  }finally{
+    $('connectBtn').disabled=false;$('connectBtn').textContent='Connect to Sub-Zero';
+  }
+};
+
+$('refreshBtn').onclick=()=>refresh();
+$('settingsBtn').onclick=()=>{
+  if(confirm('Open connection settings? Your saved connection will remain until you save another one.')){
+    clearInterval(refreshTimer);showSetup();
+  }
+};
+document.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{
+  currentTab=b.dataset.tab;
+  document.querySelectorAll('.tabbar button').forEach(x=>x.classList.toggle('active',x===b));
+  ['dashboard','sales','stock','debts'].forEach(t=>$('page-'+t).classList.toggle('hidden',t!==currentTab));
+});
+window.addEventListener('online',()=>refresh());
+window.addEventListener('offline',()=>{$('offlineBanner').classList.remove('hidden')});
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+
+function isIOS(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+function setNotifyUi(text, enabled=false){
+  const s=$('notifyStatus'), on=$('enableNotificationsBtn'), off=$('disableNotificationsBtn');
+  if(s)s.textContent=text;
+  if(on)on.classList.toggle('hidden',enabled);
+  if(off)off.classList.toggle('hidden',!enabled);
+}
+async function refreshNotificationState(){
+  const OneSignal=window.__subZeroOneSignal;
+  if(!OneSignal){
+    setNotifyUi('Notification service is loading…',false);
+    return;
+  }
+  try{
+    const supported=OneSignal.Notifications.isPushSupported();
+    if(!supported){
+      setNotifyUi('Push notifications are not supported in this browser.',false);
+      return;
+    }
+    const permission=OneSignal.Notifications.permission;
+    const optedIn=OneSignal.User.PushSubscription.optedIn;
+    if(permission && optedIn){
+      setNotifyUi('Notifications are enabled on this device.',true);
+      return;
+    }
+    if(isIOS() && !isStandalone()){
+      $('notifyCopy').textContent='On iPhone: open this site in Safari → Share → Add to Home Screen. Then open Sub-Zero from the Home Screen and tap Enable Notifications.';
+      setNotifyUi('Install/open the Home Screen app first.',false);
+      return;
+    }
+    setNotifyUi(permission ? 'Permission granted. Tap Enable to subscribe.' : 'Ready to enable notifications.',false);
+  }catch(e){
+    setNotifyUi('Could not read notification status yet.',false);
+  }
+}
+
+$('enableNotificationsBtn').onclick=()=>{
+  const OneSignal=window.__subZeroOneSignal;
+  if(!OneSignal){
+    alert('OneSignal is still loading. Wait a few seconds and try again.');
+    return;
+  }
+  if(isIOS() && !isStandalone()){
+    alert('On iPhone, first add Sub-Zero Owner to your Home Screen, then open it from the Home Screen and tap Enable Notifications.');
+    return;
+  }
+  OneSignalDeferred.push(async function(OneSignal){
+    try{
+      const supported=OneSignal.Notifications.isPushSupported();
+      if(!supported){
+        alert('Push notifications are not supported on this browser/device.');
+        return;
+      }
+      await OneSignal.Notifications.requestPermission();
+      if(OneSignal.Notifications.permission){
+        await OneSignal.User.PushSubscription.optIn();
+        await OneSignal.login('subzero-owner');
+        await OneSignal.User.addTag('role','owner');
+      }
+      refreshNotificationState();
+    }catch(e){
+      alert('Could not enable notifications.\n\n'+(e?.message||e));
+    }
+  });
+};
+
+$('disableNotificationsBtn').onclick=()=>{
+  OneSignalDeferred.push(async function(OneSignal){
+    try{
+      await OneSignal.User.PushSubscription.optOut();
+      refreshNotificationState();
+    }catch(e){
+      alert('Could not disable notifications.\n\n'+(e?.message||e));
+    }
+  });
+};
+
+window.addEventListener('subzero-onesignal-ready',refreshNotificationState);
+window.addEventListener('focus',()=>setTimeout(refreshNotificationState,300));
+setTimeout(refreshNotificationState,2500);
+
+loadCfg();
+</script>
+</body>
+</html>
